@@ -57,20 +57,46 @@ class dense:
         return (self.nodes,'m')
 
     def forward(self,a):
-        
+        self.a_prev=a
         self.z=np.matmul(self.theta,a)
         self.a=eval(self.activation+"(self.z)")
         if not self.last_layer:
             self.a=np.r_[np.ones([1,self.a.shape[-1]]),self.a]
-        # self.a=relu(self.z)
-        # print(self.z)
-        # print(self.a)
+
         return self.a
+    def backward(self,grad): # grad: dL/da
+        m=grad.shape[-1]
+        da_dz=eval(self.activation+"_derivative(self.z)")
+        if not self.last_layer:
+            da_dz=np.r_[np.ones([1,self.z.shape[-1]]),da_dz]
+        # print("grad",grad.shape)
+        dJ_dz=grad*da_dz
+        if not self.last_layer:
+            dJ_dz=dJ_dz[1:,:]
+        # print("dJ_dz",dJ_dz)  # correct till this line
+        self.d_theta=(1/m)*np.matmul(dJ_dz,self.a_prev.T)
+        # print("dtheta:",self.d_theta)
+        da_prev=np.matmul(self.theta.T,dJ_dz)
+        # print("da_prev:",da_prev.shape)
+        return da_prev
+        
+class binary_crossentropy:
+    def forward(self,y_true,y_pred):
+        self.y_true=y_true
+        self.y_pred=y_pred
+        self.m=y_true.shape[-1]
+        epsilon=1e-6
+        J=-(1/self.m)*np.sum(y_true*np.log(y_pred+epsilon)+(1-y_true)*np.log(1-y_pred+epsilon))
+        return J
+    def backward(self):
+        dJ=(self.y_pred-self.y_true)/(self.y_pred*(1-self.y_pred))
+        return dJ
 class nn:
     def __init__(self):
         self.layers=[]
         self.lr=1
         self.cost_hist=[]
+        self.loss=binary_crossentropy()
     def add(self,layer):
         self.layers.append(layer)
     def make_model(self):
@@ -87,33 +113,18 @@ class nn:
     def forward(self,X):
         for layer in self.layers:
             X=layer.forward(X)
-        # X=X[1:,:]
         return X
 
-    def loss(self,y_true,y_pred):
-        m=y_true.shape[-1]
-        epsilon=1e-6
-        J=-(1/m)*np.sum(y_true*np.log(y_pred+epsilon)+(1-y_true)*np.log(1-y_pred+epsilon))
-        return J
+    
     def backward(self,y):
         #alway call backward after calling forward
         m=y.shape[-1]
-        self.layers[-1].dz=self.layers[-1].a-y  # for sigmoid and binary crossentropy loss(logistic loss)
-        self.layers[-1].d_theta=(1/m)*np.matmul(self.layers[-1].dz,self.layers[-1-1].a.T) 
-
-        for i in range(len(self.layers))[::-1][1:len(self.layers)-1]:
-            # print(self.layers[i].name,self.layers[i].activation)
-            g_derv=eval(self.layers[i].activation+"_derivative(self.layers[i].z)")
-            g_derv=np.r_[np.ones([1,self.layers[i].z.shape[-1]]),g_derv]
-            # print("theta,dz:",self.layers[i+1].theta.T.shape,self.layers[i+1].dz.shape)
-            # print(np.matmul(self.layers[i+1].theta.T,self.layers[i+1].dz).shape)
-            self.layers[i].dz=np.matmul(self.layers[i+1].theta.T,self.layers[i+1].dz) *g_derv
-            self.layers[i].dz=self.layers[i].dz[1:,:]
-            # print(f"dz{i+1}:",self.layers[i].dz.shape,f"a{(i-1)+1}:",self.layers[i-1].a.T.shape)
-            self.layers[i].d_theta=(1/m)*np.matmul(self.layers[i].dz,self.layers[i-1].a.T)
-            # print(f"d_theta{i+1}:",self.layers[i].d_theta.shape)
-            # self.layers[i].theta-=self.lr*self.layers[i].d_theta #old
-
+        dJ_da=self.loss.backward()
+        grads=dJ_da
+        
+        for i in range(len(self.layers))[::-1][:len(self.layers)-1]:
+            grads=self.layers[i].backward(grads)
+        
         for i in range(len(self.layers))[::-1][:len(self.layers)-1]:# update
             # print(self.layers[i].name)
             self.layers[i].theta-=self.lr*self.layers[i].d_theta
@@ -124,11 +135,8 @@ class nn:
         for i in range(1,iter+1):
             print("epoch",i,":  ",end="")
             y_pred=self.forward(X)
+            self.cost_hist.append(self.loss.forward(y_true,y_pred))
             self.backward(y_true)
-            # print("y_true:",y_true.shape)
-            # print("y_pred:",y_pred.shape)
-            # print("Loss:",self.loss(y_true,y_pred))
-            self.cost_hist.append(self.loss(y_true,y_pred))
             print("Loss:{:.4f}".format(self.cost_hist[-1]))
     def predict(self,X):
         out=self.forward(X)
@@ -173,4 +181,4 @@ if __name__=='__main__':
     print("out:",out.shape)
 
 
-    model.fit(X,y,iter=1000)
+    model.fit(X,y,iter=1)

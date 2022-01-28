@@ -17,15 +17,15 @@ model.make_model()
 model.summary()
 model.lr=0.5
 model.lr=0.05
-# model.lr=1
+model.lr=0.5
 
 
 
 # X,y = datasets.make_moons(n_samples=1000,shuffle=True, noise=0.09, random_state=4)
 # X,y = datasets.make_blobs(n_samples=1000,n_features=20,centers=2,random_state=12)
-X,y = datasets.make_circles(n_samples=1000, noise=0.1)
-y = np.reshape(y,(len(y),1))
-# X,y = load_planar_dataset()
+# X,y = datasets.make_circles(n_samples=1000, noise=0.1)
+# y = np.reshape(y,(len(y),1))
+X,y = load_planar_dataset()
 print('X:',X.shape)
 print('y:',y.shape)
 
