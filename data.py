@@ -16,7 +16,20 @@ def load_planar_dataset():
         X[ix] = np.c_[r*np.sin(t), r*np.cos(t)]
         Y[ix] = j
         
-    X = X
-    Y = Y
-
     return X, Y
+
+
+def load_moon():
+    data=np.loadtxt("moon.txt")
+    X,y=data[:,:2],data[:,2:3]
+    return X,y
+
+def load_blob():
+    data=np.loadtxt("blob.txt")
+    X,y=data[:,:2],data[:,2:3]
+    return X,y
+    
+def load_circle():
+    data=np.loadtxt("circle.txt")
+    X,y=data[:,:2],data[:,2:3]
+    return X,y
