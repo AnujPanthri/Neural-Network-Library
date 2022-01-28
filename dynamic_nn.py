@@ -34,49 +34,52 @@ class input_layer:
         self.nodes=nodes
         self.name="input_layer"
         self.theta=np.array([])
+        self.bias=np.array([])
     def forward(self,X):
-        self.a=X.T # n*m where n are the number of features and m is number of example
-        self.a=np.r_[np.ones([1,self.a.shape[-1]]),self.a]
+        self.a=X # m*n where n are the number of features and m is number of example
         return self.a
     def out_shape(self):
-        return (self.nodes,'m')
+        return ('m',self.nodes)
 
 class dense:
-    def __init__(self,nodes,activation='relu',last_layer=False):
+    def __init__(self,nodes,activation='relu',last_layer=False,use_bias=True):
         self.nodes=nodes
         self.activation=activation
         self.name="dense"
         self.last_layer=last_layer
+        self.use_bias=use_bias
     def config(self,shape_of_last):
-        prev=shape_of_last[0]
+        prev=shape_of_last[-1]
         curr=self.nodes
         # np.random.seed(133)
-        self.theta=np.random.rand((curr*(prev+1))).reshape((curr,prev+1))
+        self.theta=np.random.rand(prev*curr).reshape((prev,curr))
+        self.bias=np.array([])
+        if self.use_bias:
+            self.bias=np.random.rand(curr).reshape((1,curr))
         # print("theta:",self.theta.shape)
     def out_shape(self):
-        return (self.nodes,'m')
+        return ('m',self.nodes)
 
     def forward(self,a):
         self.a_prev=a
-        self.z=np.matmul(self.theta,a)
+        self.z=np.matmul(a,self.theta)
+        if self.use_bias:
+            self.z=self.z+self.bias
         self.a=eval(self.activation+"(self.z)")
-        if not self.last_layer:
-            self.a=np.r_[np.ones([1,self.a.shape[-1]]),self.a]
-
+        # print("a:",self.a.shape)
         return self.a
     def backward(self,grad): # grad: dL/da
-        m=grad.shape[-1]
+        m=grad.shape[0]
         da_dz=eval(self.activation+"_derivative(self.z)")
-        if not self.last_layer:
-            da_dz=np.r_[np.ones([1,self.z.shape[-1]]),da_dz]
         # print("grad",grad.shape)
-        dJ_dz=grad*da_dz
-        if not self.last_layer:
-            dJ_dz=dJ_dz[1:,:]
+        dJ_dz=grad*da_dz # element-wise multiplication
+        
         # print("dJ_dz",dJ_dz)  # correct till this line
-        self.d_theta=(1/m)*np.matmul(dJ_dz,self.a_prev.T)
+        self.d_theta=(1/m)*np.matmul(self.a_prev.T,dJ_dz)
+        if self.use_bias:
+            self.d_bias=(1/m)*np.sum(dJ_dz,axis=0,keepdims=True)
         # print("dtheta:",self.d_theta)
-        da_prev=np.matmul(self.theta.T,dJ_dz)
+        da_prev=np.matmul(dJ_dz,self.theta.T)
         # print("da_prev:",da_prev.shape)
         return da_prev
         
@@ -84,13 +87,24 @@ class binary_crossentropy:
     def forward(self,y_true,y_pred):
         self.y_true=y_true
         self.y_pred=y_pred
-        self.m=y_true.shape[-1]
+        self.m=y_true.shape[0]
         epsilon=1e-6
         J=-(1/self.m)*np.sum(y_true*np.log(y_pred+epsilon)+(1-y_true)*np.log(1-y_pred+epsilon))
         return J
     def backward(self):
         dJ=(self.y_pred-self.y_true)/(self.y_pred*(1-self.y_pred))
-        return dJ
+        return dJ  # dJ/da
+class mse:
+    def forward(self,y_true,y_pred):
+        self.y_true=y_true
+        self.y_pred=y_pred
+        self.m=y_true.shape[0]
+        epsilon=1e-6
+        J=(1/(2*self.m))*np.sum((y_pred-y_true)**2)
+        return J
+    def backward(self):
+        dJ=(self.y_pred-self.y_true)
+        return dJ  # dJ/da
 class nn:
     def __init__(self):
         self.layers=[]
@@ -108,7 +122,7 @@ class nn:
     def summary(self):
         print("\n\nsummary:\n")
         for layer in self.layers:
-            print(layer.name,"\ttheta shape:",layer.theta.shape,"\tOutput shape:",layer.out_shape())
+            print(layer.name,"\ttheta shape:",layer.theta.shape,"\tbias shape:",layer.bias.shape,"\tOutput shape:",layer.out_shape())
         print("\n\n")
     def forward(self,X):
         for layer in self.layers:
@@ -118,29 +132,31 @@ class nn:
     
     def backward(self,y):
         #alway call backward after calling forward
-        m=y.shape[-1]
+        m=y.shape[0]
         dJ_da=self.loss.backward()
         grads=dJ_da
-        
+        # print("grads:",grads.shape)
         for i in range(len(self.layers))[::-1][:len(self.layers)-1]:
             grads=self.layers[i].backward(grads)
         
         for i in range(len(self.layers))[::-1][:len(self.layers)-1]:# update
             # print(self.layers[i].name)
             self.layers[i].theta-=self.lr*self.layers[i].d_theta
+            if self.layers[i].use_bias:
+                self.layers[i].bias-=self.lr*self.layers[i].d_bias
 
     def fit(self,X,y_true,iter=10):
-        y_true=y_true.T
         
         for i in range(1,iter+1):
             print("epoch",i,":  ",end="")
             y_pred=self.forward(X)
+            # print(y_true.shape,y_pred.shape)
             self.cost_hist.append(self.loss.forward(y_true,y_pred))
             self.backward(y_true)
             print("Loss:{:.4f}".format(self.cost_hist[-1]))
     def predict(self,X):
         out=self.forward(X)
-        return out.T
+        return out
     def plot_training(self):
         x=np.arange(1,len(self.cost_hist)+1,1)
         y=self.cost_hist
@@ -156,7 +172,8 @@ if __name__=='__main__':
     model.add(input_layer((2)))
     # model.add(dense(5,activation='sigmoid'))
     # model.add(dense(3,activation='sigmoid'))
-    model.add(dense(2,activation='sigmoid'))
+    model.add(dense(3,activation='sigmoid'))
+    model.add(dense(5,activation='sigmoid'))
     model.add(dense(1,activation='sigmoid',last_layer=True))
     model.make_model()
     model.summary()
