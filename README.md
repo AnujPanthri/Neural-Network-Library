@@ -18,3 +18,7 @@
 - Input layer
 - Dense layer
 
+# Weight Initializations:
+
+- Random Initialization
+- He Initialization 

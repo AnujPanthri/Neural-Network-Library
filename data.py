@@ -20,16 +20,35 @@ def load_planar_dataset():
 
 
 def load_moon():
-    data=np.loadtxt("moon.txt")
+    data=np.loadtxt("data/moon.txt")
     X,y=data[:,:2],data[:,2:3]
     return X,y
 
 def load_blob():
-    data=np.loadtxt("blob.txt")
+    data=np.loadtxt("data/blob.txt")
     X,y=data[:,:2],data[:,2:3]
     return X,y
     
 def load_circle():
-    data=np.loadtxt("circle.txt")
+    data=np.loadtxt("data/circle.txt")
     X,y=data[:,:2],data[:,2:3]
+    return X,y
+
+
+import pandas as pd
+def load_heart_disease():
+    data=pd.read_csv('data/framingham.csv')
+    Missing_values_percent = 100*(data.isnull().sum()/len(data["male"]))
+    data["education"].fillna(data["education"].median(), inplace = True)
+    data["cigsPerDay"].fillna(data["cigsPerDay"].median(), inplace = True)
+    data["BPMeds"].fillna(data["BPMeds"].median(), inplace = True)
+    data["totChol"].fillna(data["totChol"].median(), inplace = True)
+    data["BMI"].fillna(data["BMI"].median(), inplace = True)
+    data["heartRate"].fillna(data["heartRate"].median(), inplace = True)
+    data["glucose"].fillna(data["glucose"].median(), inplace = True)
+    Missing_values_percent = 100*(data.isnull().sum()/len(data["male"]))
+    # print(Missing_values_percent)
+    X = np.array(data.drop(["TenYearCHD"], axis = 1))
+    y = np.array(data["TenYearCHD"]) # target
+    y=y.reshape(-1,1)
     return X,y

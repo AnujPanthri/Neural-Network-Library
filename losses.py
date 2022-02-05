@@ -11,7 +11,8 @@ class binary_crossentropy(loss):
         self.y_true=y_true
         self.y_pred=y_pred
         self.m=y_true.shape[0]
-        epsilon=1e-6
+        # epsilon=1e-6 # don't use this cuz it was causing problems with gradient checking
+        epsilon=0
         J=-(1/self.m)*np.sum(y_true*np.log(y_pred+epsilon)+(1-y_true)*np.log(1-y_pred+epsilon))
         return J
     def backward(self):
