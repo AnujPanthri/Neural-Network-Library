@@ -35,8 +35,8 @@ model.lr=2.1  # sigmoid
 ''' Experiment with these data also , note you might have to adjust lr(learning rate) according to each data '''
 # X,y = load_planar_dataset() # data loading
 # X,y = load_moon() # data loading         
-X,y = load_circle() # data loading
-# X,y = load_blob() # data loading
+# X,y = load_circle() # data loading
+X,y = load_blob() # data loading
 
 print('X:',X.shape)
 print('y:',y.shape)
@@ -52,7 +52,7 @@ print(x_test.shape,y_test.shape)
 gradient_checking(model,X,y) # gradient checking before training
 model.fit(x_train,y_train,iter=500,verbose=0)
 gradient_checking(model,X,y) # gradient checking after training
-
+model.reset()
 
 
 # cost_lr,grad_lr=model.lr_finder(x_train,y_train,0.0001,2,1000)

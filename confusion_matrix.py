@@ -5,7 +5,27 @@ def confusion(y_true,y_pred,classes):
         c_matrix[int(y_pred[i]),int(y_true[i])]+=1
         # c_matrix[y_pred[i,0],y_true[i,0]]+=1
     return c_matrix
+def show_confusion_matrix(con,labels):
+    import matplotlib.pyplot as plt
+    figure = plt.figure()
+    axes = figure.add_subplot(111)
+    caxes = axes.matshow(con,cmap=plt.get_cmap('Blues'))
+    # caxes = axes.matshow(con,cmap=plt.get_cmap('cool'))
+    figure.colorbar(caxes)
+    
+    axes.xaxis.set_ticks(np.arange(0,con.shape[0],1))
+    axes.yaxis.set_ticks(np.arange(0,con.shape[0],1))
+    axes.set_xticklabels(labels)
+    axes.set_yticklabels(labels)
 
+    for (i, j), z in np.ndenumerate(con):
+        axes.text(j, i, int(z), ha='center', va='center')
+    plt.show()
+    # plt.figure()
+    # plt.matshow(con,'Blues')
+    # ax=plt.matshow(con,cmap=plt.get_cmap('Blues'))
+    # plt.colorbar()
+    # plt.show()
 def f1(confusion_matrix):
     precision=np.zeros(confusion_matrix.shape[1])
     recall=np.zeros(confusion_matrix.shape[1])

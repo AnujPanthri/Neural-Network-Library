@@ -1,23 +1,33 @@
+from cmath import pi
 import numpy as np
 from activations import *
 
 
-def ReLU_function( signal, derivative=False ):
-    if derivative:
-        return (signal > 0).astype(float)
-    else:
-        # Return the activation signal
-        return np.maximum( 0, signal )
 
 
-data=np.array([23,25,-34,0])
-print("input data:",data)
-act=relu()
-print("output:",act.forward(data))
-print("derivatives:",act.backward(data))
+# data=np.array([[1,2],
+#                [13,2],
+#                [1,23],
+#                [2,1],
+# ])
+# # data=np.array([[0.25], [-1], [2.3], [-0.2], [1]]).T
+# print(data.shape)
+# # data=np.random.rand(1,4)*4
+
+# print("input data:",data)
+# # act=relu()
+# act=softmax()
+
+# print("sum of output:",np.sum(act.forward(data)))
+# print("output:",np.around(act.forward(data),4))
+# print("derivatives:",act.backward(data))
 
 
-
-print("output:",ReLU_function(data))
-print("derivatives:",ReLU_function(data,True))
-
+color=np.array([[1,2,3],
+                [3,2,1]
+])
+print(color.shape,color)
+pixels=2
+image=np.tile(color,pixels**2).reshape(2,pixels,pixels,3)
+print(image.shape)
+print(image)

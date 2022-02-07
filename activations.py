@@ -30,3 +30,23 @@ class sigmoid(activation):
     def backward(self,z):
         z=self.forward(z)*(1-self.forward(z))
         return z
+
+
+class softmax(activation):
+    def forward(self,z):
+        # z=np.exp(z)/np.sum(np.exp(z) ,axis=1, keepdims=True)
+        z=np.exp(z-np.max(z))/np.sum(np.exp(z-np.max(z)) ,axis=1, keepdims=True)
+        return z
+        # e = np.exp(z-np.max(z))
+        # s = np.sum(e, axis=1, keepdims=True)
+        # return e/s
+    def backward(self,z):
+        softmax=self.forward(z)
+        same=softmax*(1.-softmax) # for i==j
+        not_same=-(softmax[:,:,None]*softmax[:,None,:]) # for i!=j
+        # print(not_same.shape)
+        same_idx=np.arange(0,not_same.shape[-1],1)
+        not_same[:,same_idx,same_idx]=same
+
+        # return same
+        return not_same

@@ -52,3 +52,19 @@ def load_heart_disease():
     y = np.array(data["TenYearCHD"]) # target
     y=y.reshape(-1,1)
     return X,y
+
+
+def load_rgb():
+    data=pd.read_csv('data/rgb.csv')
+    # data=np.array(data)
+    data=data.to_numpy()
+    # print(data)
+    labels=np.unique(data[:,-1])
+    # print(labels)
+    for i,label in enumerate(labels):
+        data[(data==label)]=i
+    # print(data)
+    data=data.astype(np.float32)
+    x,y=data[:,:-1],data[:,-1:]
+    # print(x.shape,y.shape)
+    return x,y,labels

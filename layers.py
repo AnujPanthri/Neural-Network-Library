@@ -72,7 +72,12 @@ class dense(layer):
     def backward(self,grad): # grad: dL/da
         m=grad.shape[0]
         da_dz=self.activation.backward(self.z)
-        dJ_dz=grad*da_dz # element-wise multiplication
+        if self.activation_name!='softmax':
+            dJ_dz=grad*da_dz # element-wise multiplication
+        else:
+            dJ_dz=np.matmul(da_dz,grad[...,None])[...,0] # matrix multiplication
+            # print("dJ_dz:",dJ_dz.shape)
+        
         
         self.d_theta=(1/m)*np.matmul(self.a_prev.T,dJ_dz) # dL/dtheta
         if self.use_bias:

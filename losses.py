@@ -16,9 +16,19 @@ class binary_crossentropy(loss):
         J=-(1/self.m)*np.sum(y_true*np.log(y_pred+epsilon)+(1-y_true)*np.log(1-y_pred+epsilon))
         return J
     def backward(self):
-        dJ=(self.y_pred-self.y_true)/(self.y_pred*(1-self.y_pred))
+        dJ=(self.y_pred-self.y_true)/(self.y_pred*(1-self.y_pred))  # we did'nt included 1/m term here we did that in the layers for d_theta
         return dJ  # dJ/da
 
+class categorical_crossentropy(loss):
+    def forward(self,y_true,y_pred):
+        self.y_true=y_true
+        self.y_pred=y_pred
+        self.m=y_true.shape[0]
+        J=-(1/self.m)*np.sum(y_true*np.log(y_pred))
+        return J
+    def backward(self):
+        dJ=-self.y_true/self.y_pred
+        return dJ
 
 class mse(loss):
     def forward(self,y_true,y_pred):

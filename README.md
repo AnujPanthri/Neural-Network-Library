@@ -22,9 +22,3 @@
 
 - Random Initialization
 - He Initialization 
-
-# Data Preprocessing 
-
-- Feature scaling
-- Adding Polynomial features
-- undersampling(for class imbalance in dataset)

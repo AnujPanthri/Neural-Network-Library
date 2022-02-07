@@ -70,6 +70,16 @@ def acc(y_true,y_pred,show=False):
             print("acc:","{:.2f}".format(acc))
         return acc
 
+def categorical_acc(y_true,y_pred,show=False):
+        y_true=np.argmax(y_true,axis=-1)[...,None]
+        y_pred=np.argmax(y_pred,axis=-1)[...,None]
+        total=np.sum(np.ones_like(y_true))
+        match=np.sum((y_true==y_pred)*1)
+        acc=(match/total)*100
+        if show:
+            print("acc:","{:.2f}".format(acc))
+        return acc
+
 class plotter:
     def __init__(self,graph_name="",y_axis="N/A"):
         plt.figure()
