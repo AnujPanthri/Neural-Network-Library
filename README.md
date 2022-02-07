@@ -7,10 +7,12 @@
 - ReLu
 - Sigmoid
 - Linear
+- Softmax
 
 # loss functions:
 
 - Binary Crossentropy
+- Categorical Crossentropy
 - Mse(Mean squared error)
 
 # Layers:
